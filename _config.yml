@@ -1,0 +1,34 @@
+title: Reading Log
+description: 本・進捗・感想・アクションをつなぐ読書ログ
+lang: ja
+timezone: Asia/Tokyo
+# url・baseurl はリポジトリ名から GitHub Pages が自動で決める（書かない）
+markdown: kramdown
+permalink: pretty
+
+defaults:
+  - scope:
+      path: books
+    values:
+      layout: book
+      type: book
+  - scope:
+      path: reviews
+    values:
+      layout: review
+
+exclude:
+  - AGENTS.md
+  - AI_RULES.md
+  - CHATGPT_PROJECT_INSTRUCTIONS.md
+  - CLAUDE.md
+  - LICENSE
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - inbox
+  - templates
+  - vendor
+  - docs
+  - books/README.md
+  - assets/covers/README.md

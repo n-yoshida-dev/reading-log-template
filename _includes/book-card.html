@@ -1,0 +1,64 @@
+{% assign book = include.book %}
+{% assign status_label = book.status %}
+{% if book.status == 'unread' %}{% assign status_label = '未読' %}{% endif %}
+{% if book.status == 'reading' %}{% assign status_label = '読書中' %}{% endif %}
+{% if book.status == 'paused' %}{% assign status_label = '一時停止' %}{% endif %}
+{% if book.status == 'finished' %}{% assign status_label = '読了' %}{% endif %}
+{% if book.status == 'skimmed' %}{% assign status_label = '拾い読み完了' %}{% endif %}
+{% if book.status == 'abandoned' %}{% assign status_label = '中止' %}{% endif %}
+{% assign progress = book.progress | default: 0 %}
+
+<article
+  class="book-card"
+  data-book-card
+  data-status="{{ book.status | escape }}"
+  data-priority-score="{{ book.priority_score | default: -1 }}"
+  data-title="{{ book.title | escape }}"
+  data-author="{{ book.author | escape }}"
+  data-category="{{ book.category | escape }}"
+  data-user-rating="{{ book.user_rating | default: 0 }}"
+  data-rating="{{ book.amazon_rating | default: 0 }}"
+  data-rating-count="{{ book.amazon_rating_count | default: 0 }}"
+  data-published="{% if book.published_at %}{{ book.published_at | date: '%Y-%m-%d' }}{% endif %}"
+  {% if include.hide_finished and book.status == 'finished' %}hidden{% endif %}
+>
+  <a class="book-card__cover-link" href="{{ book.url | relative_url }}" aria-label="『{{ book.title | escape }}』の記録を見る">
+    <div class="book-cover{% if book.cover_image %} book-cover--has-image{% endif %}">
+      {% if book.cover_image %}
+        {% assign cover_prefix = book.cover_image | slice: 0, 4 %}
+        {% if cover_prefix == 'http' %}
+          <img src="{{ book.cover_image }}" alt="『{{ book.title | escape }}』の表紙" loading="lazy" onerror="this.parentElement.classList.remove('book-cover--has-image'); this.remove();">
+        {% else %}
+          <img src="{{ book.cover_image | relative_url }}" alt="『{{ book.title | escape }}』の表紙" loading="lazy" onerror="this.parentElement.classList.remove('book-cover--has-image'); this.remove();">
+        {% endif %}
+      {% endif %}
+      <div class="book-cover__placeholder">
+        <span>{{ book.title }}</span>
+        {% if book.author %}<small>{{ book.author }}</small>{% endif %}
+      </div>
+    </div>
+  </a>
+
+  <div class="book-card__content">
+    {% if include.hide_status != true or include.show_order %}
+    <div class="book-card__eyebrow">
+      {% unless include.hide_status %}<span class="status status--{{ book.status }}">{{ status_label }}</span>{% endunless %}
+      {% if include.show_order and book.reading_order and book.reading_order != 999 %}<span class="order" aria-label="読む順番 {{ book.reading_order }}">#{{ book.reading_order }}</span>{% endif %}
+    </div>
+    {% endif %}
+    <h3><a href="{{ book.url | relative_url }}">{{ book.title }}</a></h3>
+    {% if book.priority_score != nil and book.status != "finished" and book.status != "skimmed" and book.status != "abandoned" %}<p class="book-card__score" aria-label="AI優先度スコア {{ book.priority_score }}点／100点">優先度 <strong>{{ book.priority_score }}</strong><span> / 100</span></p>{% endif %}
+    {% if book.author %}<p class="book-card__author">{{ book.author }}</p>{% endif %}
+    <div class="book-card__meta">
+      {% if book.category %}<span class="category-chip">{{ book.category }}</span>{% endif %}
+      {% if book.user_rating %}<span class="user-rating" aria-label="自分の評価 {{ book.user_rating }} / 5">★ {{ book.user_rating }}</span>{% endif %}
+    </div>
+
+    {% if book.status == 'reading' or book.status == 'paused' %}
+    <div class="progress progress--compact" role="progressbar" aria-label="読書の進捗" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress__meta"><strong>{{ progress }}%</strong></div>
+      <div class="progress__track"><span style="width: {{ progress }}%"></span></div>
+    </div>
+    {% endif %}
+  </div>
+</article>

@@ -1,0 +1,103 @@
+---
+layout: default
+title: 本棚
+description: 読書中、次に読む本、読了後の行動を一覧する読書ログ
+---
+{% assign books = site.pages | where: 'type', 'book' %}
+{% assign reading_books = books | where: 'status', 'reading' | sort: 'reading_order' %}
+{% assign unread_books = books | where: 'status', 'unread' | sort: 'reading_order' %}
+{% assign finished_books = books | where: 'status', 'finished' %}
+{% assign skimmed_books = books | where: 'status', 'skimmed' %}
+{% assign completed_count = finished_books.size | plus: skimmed_books.size %}
+{% assign default_visible_count = books.size | minus: finished_books.size %}
+
+<header class="bookshelf-intro">
+  <h1>本棚</h1>
+  <a class="bookshelf-intro__review" href="{{ '/reviews/latest/' | relative_url }}">週次レビュー <span aria-hidden="true">↗</span></a>
+</header>
+
+<section class="stats" aria-label="読書状況">
+  <div><strong>{{ reading_books | size }}</strong><span>読書中</span></div>
+  <div><strong>{{ unread_books | size }}</strong><span>積読</span></div>
+  <div><strong>{{ completed_count }}</strong><span>完了</span></div>
+</section>
+
+{% if books.size == 0 %}
+  <section class="empty-state">
+    <div>
+      <h2>最初の1冊を登録する</h2>
+      <p>ChatGPTプロジェクトに表紙とISBNバーコードの写真を添付し、買った理由または読む目的を伝えると、この本棚に追加できます。</p>
+      <p class="empty-state__example">「この本を登録して。設計の理解を深めるために買った」</p>
+    </div>
+  </section>
+{% endif %}
+
+{% if reading_books.size > 0 %}
+  <section class="shelf-section">
+    <header class="section-heading">
+      <h2>読書中</h2>
+    </header>
+    <div class="book-grid">
+      {% for book in reading_books %}{% include book-card.html book=book hide_status=true %}{% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% if unread_books.size > 0 %}
+  <section class="shelf-section">
+    <header class="section-heading">
+      <h2>次に読む</h2>
+
+    </header>
+    <div class="book-grid">
+      {% for book in unread_books limit: 3 %}{% include book-card.html book=book hide_status=true show_order=true %}{% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% if books.size > 0 %}
+  <section class="shelf-section">
+    <header class="section-heading">
+      <h2>すべての本</h2>
+      <p id="book-result-count" aria-live="polite">{{ default_visible_count }}冊</p>
+    </header>
+
+    <div class="shelf-controls" aria-label="本棚の検索と並べ替え">
+      <label class="control control--search">
+        <span class="visually-hidden">本を検索</span>
+        <input id="book-search" type="search" placeholder="タイトル・著者で検索" autocomplete="off">
+      </label>
+      <label class="control">
+        <span class="visually-hidden">カテゴリ</span>
+        <select id="category-filter">
+          <option value="all">全カテゴリ</option>
+          {% for category in site.data.categories %}<option value="{{ category | escape }}">{{ category }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="control">
+        <span class="visually-hidden">並び順</span>
+        <select id="book-sort">
+          <option value="priority">優先度スコア順</option>
+          <option value="category">カテゴリ → タイトル</option>
+          <option value="title">タイトル</option>
+          <option value="user-rating">自分の評価が高い順</option>
+          <option value="rating">Amazon評価が高い順</option>
+          <option value="rating-count">Amazon評価数が多い順</option>
+          <option value="published-new">刊行日が新しい順</option>
+          <option value="published-old">刊行日が古い順</option>
+        </select>
+      </label>
+      <label class="control--toggle">
+        <input id="show-finished" type="checkbox">
+        <span>読了も表示</span>
+      </label>
+    </div>
+
+    <div class="book-grid" id="all-books-grid">
+      {% assign sorted_books = books | sort: 'title' %}
+      {% for book in sorted_books %}{% include book-card.html book=book hide_finished=true %}{% endfor %}
+    </div>
+    <p class="no-results" id="book-no-results" hidden>条件に一致する本はありません。</p>
+  </section>
+{% endif %}
